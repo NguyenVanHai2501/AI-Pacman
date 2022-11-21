@@ -228,72 +228,41 @@ def uniformCostSearch(problem):
        and if the new calculated cost is less than old cost, then the cost and parent are updated,
        and it is pushed onto the priority queue with new cost as priority.'''
 
-    # initializations
-
-    # "visited" contains nodes which have been popped from the queue,
-    # and the direction from which they were obtained
-    visited = {}
-    # "solution" contains the sequence of directions for Pacman to get to the goal state
-    solution = []
-    # "queue" contains triplets of: (nodes in the fringe list, direction, cost)
+    # hàng đợi
     queue = util.PriorityQueue()
-    # "parents" contains nodes and their parents
-    parents = {}
-    # "cost" contains nodes and their corresponding costs
-    cost = {}
 
-    # start state is obtained and added to the queue
-    start = problem.getStartState()
-    queue.push((start, 'Undefined', 0), 0)
-    # the direction from which we arrived in the start state is undefined
-    visited[start] = 'Undefined'
-    # cost of start state is 0
-    cost[start] = 0
+    # lưu trữ những node đã di chuyển đến
+    visited = set()
 
-    # return if start state itself is the goal
-    if problem.isGoalState(start):
-        return solution
+    start_node = problem.getStartState()
 
-    # loop while queue is not empty and goal is not reached
-    goal = False;
-    while(queue.isEmpty() != True and goal != True):
-        # pop from top of queue
-        node = queue.pop()
-        # store element and its direction
-        visited[node[0]] = node[1]
-        # check if element is goal
-        if problem.isGoalState(node[0]):
-            node_sol = node[0]
-            goal = True
-            break
-        # expand node
-        for elem in problem.getSuccessors(node[0]):
-            # if successor is not visited, calculate its new cost
-            if elem[0] not in visited.keys():
-                priority = node[2] + elem[2]
-                # if cost of successor was calculated earlier while expanding a different node,
-                # if new cost is more than old cost, continue
-                if elem[0] in cost.keys():
-                    if cost[elem[0]] <= priority:
-                        continue
-                # if new cost is less than old cost, push to queue and change cost and parent
-                queue.push((elem[0], elem[1], priority), priority)
-                cost[elem[0]] = priority
-                # store successor and its parent
-                parents[elem[0]] = node[0]
+    cost = 0
+    collection = []
 
-    # finding and storing the path
-    while(node_sol in parents.keys()):
-        # find parent
-        node_sol_prev = parents[node_sol]
-        # prepend direction to solution
-        solution.insert(0, visited[node_sol])
-        # go to previous node
-        node_sol = node_sol_prev
+    queue.push((start_node, collection, cost), cost)
 
-    return solution
+    while not queue.isEmpty():
+        # lấy dữ liệu node đầu tiên ra khỏi hàng đợi
+        cr_node, cr_collection, cr_cost = queue.pop()
+
+        # nếu node này trùng với vị trí win thi trả về collection
+        if problem.isGoalState(cr_node):
+            return cr_collection
+
+        # nếu node hiện tại chưa được di chuyển đến
+        # thì thêm vào hàng đợi những node lân cận nó có thể di chuyển đến
+        if not cr_node in visited:
+            visited.add(cr_node)
+
+            for next_node, next_way, next_cost in problem.getSuccessors(cr_node):
+                if next_node and not next_node in visited:
+                    queue.push((next_node, cr_collection + [next_way], cr_cost + next_cost), cr_cost + next_cost)
+
+    util.raiseNotDefined()
+
 
 '''-----------  UCS ends  -----------'''
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -304,6 +273,7 @@ def nullHeuristic(state, problem=None):
 
 
 '''-----------  A* begins  -----------'''
+
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
@@ -381,15 +351,15 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     #     current_sol = current_sol_prev
 
     # return solution
-    p_queue = util.PriorityQueue() #hang doi uu tien (cost) chua vi tri hien tai, danh sach cac hanh dong va gia phai tra
+    p_queue = util.PriorityQueue()  # hang doi uu tien (cost) chua vi tri hien tai, danh sach cac hanh dong va gia phai tra
     start = problem.getStartState()
     visited = {}
-    cost = 0 # heuristic de tinh gia tri uu tien cost
+    cost = 0  # heuristic de tinh gia tri uu tien cost
     action = []
     p_queue.push((start, action, cost), cost)
-    
+
     while not p_queue.isEmpty():
-        #kiem tra neu trang thai hien tai la win thi tra lai danh sach hang dong
+        # kiem tra neu trang thai hien tai la win thi tra lai danh sach hang dong
         current = p_queue.pop()
         if problem.isGoalState(current[0]):
             return current[1]
@@ -400,6 +370,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                     next_act = current[1] + [act]
                     next_cost = current[2] + co
                     p_queue.push((next, next_act, next_cost), next_cost + heuristic(next, problem))
+
 
 '''-----------  A* ends  -----------'''
 
