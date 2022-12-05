@@ -18,6 +18,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+from util import Stack
 
 class SearchProblem:
     """
@@ -86,59 +87,23 @@ def depthFirstSearch(problem):
     3. If it is not a goal node, it is expanded.
     4. If the successor node is not visited, then it is pushed onto the stack and its parent is stored.'''
 
-    # initializations
-
-    # "visited" contains nodes which have been popped from the stack,
-    # and the direction from which they were obtained
-    visited = {}
-    # "solution" contains the sequence of directions for Pacman to get to the goal state
-    solution = []
-    # "stack" contains triplets of: (node in the fringe list, direction, cost)
-    stack = util.Stack()
-    # "parents" contains nodes and their parents
-    parents = {}
-
-    # start state is obtained and added to the stack
-    start = problem.getStartState()
-    stack.push((start, 'Undefined', 0))
-    # the direction from which we arrived in the start state is undefined
-    visited[start] = 'Undefined'
-
-    # return if start state itself is the goal
-    if problem.isGoalState(start):
-        return solution
-
-    # loop while stack is not empty and goal is not reached
-    goal = False;
-    while(stack.isEmpty() != True and goal != True):
-        # pop from top of stack
-        node = stack.pop()
-        # store element and its direction
-        visited[node[0]] = node[1]
-        # check if element is goal
-        if problem.isGoalState(node[0]):
-            node_sol = node[0]
-            goal = True
-            break
-        # expand node
-        for elem in problem.getSuccessors(node[0]):
-            # if successor has not already been visited
-            if elem[0] not in visited.keys():
-                # store successor and its parent
-                parents[elem[0]] = node[0]
-                # push successor onto stack
-                stack.push(elem)
-
-    # finding and storing the path
-    while(node_sol in parents.keys()):
-        # find parent
-        node_sol_prev = parents[node_sol]
-        # prepend direction to solution
-        solution.insert(0, visited[node_sol])
-        # go to previous node
-        node_sol = node_sol_prev
-
-    return solution
+#   from util import Stack
+    
+    start_state = problem.getStartState()
+    stack =Stack()
+    stack.push((start_state, []))
+    visited = []
+    while not stack.isEmpty():
+        current_state, actions = stack.pop()
+        if problem.isGoalState(current_state):
+            return actions
+        if current_state not in visited:
+            visited.append(current_state)
+            successors = problem.getSuccessors(current_state)
+            for state, action, cost in successors:
+                if state not in visited:
+                    stack.push((state, actions+[action]))
+    return []
 
 '''-----------  DFS ends  -----------'''
 
@@ -155,60 +120,21 @@ def breadthFirstSearch(problem):
     3. If it is not a goal node, it is expanded.
     4. If the successor node is not visited, and has not been expanded as a child of another node,
        then it is pushed onto the queue and its parent is stored.'''
-
-    # initializations
-
-    # "visited" contains nodes which have been popped from the queue,
-    # and the direction from which they were obtained
-    visited = {}
-    # "solution" contains the sequence of directions for Pacman to get to the goal state
-    solution = []
-    # "queue" contains triplets of: (node in the fringe list, direction, cost)
     queue = util.Queue()
-    # "parents" contains nodes and their parents
-    parents = {}
-
-    # start state is obtained and added to the queue
-    start = problem.getStartState()
-    queue.push((start, 'Undefined', 0))
-    # the direction from which we arrived in the start state is undefined
-    visited[start] = 'Undefined'
-
-    # return if start state itself is the goal
-    if problem.isGoalState(start):
-        return solution
-
-    # loop while queue is not empty and goal is not reached
-    goal = False;
-    while(queue.isEmpty() != True and goal != True):
-        # pop from top of queue
-        node = queue.pop()
-        # store element and its direction
-        visited[node[0]] = node[1]
-        # check if element is goal
-        if problem.isGoalState(node[0]):
-            node_sol = node[0]
-            goal = True
-            break
-        # expand node
-        for elem in problem.getSuccessors(node[0]):
-            # if successor has not already been visited or expanded as a child of another node
-            if elem[0] not in visited.keys() and elem[0] not in parents.keys():
-                # store successor and its parent
-                parents[elem[0]] = node[0]
-                # push successor onto queue
-                queue.push(elem)
-
-    # finding and storing the path
-    while(node_sol in parents.keys()):
-        # find parent
-        node_sol_prev = parents[node_sol]
-        # prepend direction to solution
-        solution.insert(0, visited[node_sol])
-        # go to previous node
-        node_sol = node_sol_prev
-
-    return solution
+    startNode = problem.getStartState()
+    visited = {}
+    cost = 0
+    actions = []
+    queue.push((startNode, actions, cost))
+    while not queue.isEmpty():
+        current = queue.pop()
+        if (problem.isGoalState(current[0])):
+            return current[1]
+        if current[0] not in visited:
+            visited[current[0]] = True 
+            for next, act, co in problem.getSuccessors(current[0]):
+                queue.push((next, current[1]+[act], current[2]+co))
+    util.raiseNotDefined()
 
 '''-----------  BFS ends  -----------'''
 
